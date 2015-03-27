@@ -5,6 +5,7 @@ import xml.etree.cElementTree as ET
 from collections import defaultdict
 import re
 import pprint
+import json
 
 
 #1.75 million rows of data!
@@ -72,35 +73,40 @@ def is_dict(d):
     return False
 
 
-tag = "address"
+tag = "service"
 
 keys = {
+    'address': {
+        'root': 1,
+        'apartment': {'root': 5},
+        'street': {'root': 2}
+        },
+    'street': {'apartment': {'room': {'root': 1}}}}
 
-}
+#Very first "service"
 
 
-
-def recursive_tree(keys, tag, first=True):
+def recursive_tree(keys, tag):
     # Handle pre-existing key
     if tag in keys:
-        if first:
-            #TODO: Cant assume this is an object could be a num
-            keys[tag]["root"] += 1
-            return keys
-        else:
-            keys[tag] += 1
-            return keys            
+        #TODO: Hits a pure root after having just chains
+        #Solution always add a root of 0 for any?
+        if "root" not in keys[tag]:
+            keys[tag] = { "root" : 1 }
+
+        keys[tag]["root"] += 1
+        return keys
+         
 
     # Handle base case
     if len(split_keys(tag)) == 1:
-        keys[tag] = 1
+        keys[tag] = {"root":1}
         return keys
     
     cur_key = split_keys(tag)[0] #address
     next_key = split_keys(tag)[1] #street
 
-    # RIGHT NOW handles assumes all values are objects or nothing
-    # Need to handle if value is an int
+    # Comment the code
     cur_obj = keys.get(cur_key)
 
     # If cur_key exists and has a value of a number
@@ -114,15 +120,23 @@ def recursive_tree(keys, tag, first=True):
     else:
         next_obj = {}
 
-
     #Enter the jungle
-    updated_keys = recursive_tree(next_obj, next_key, False)
+    updated_keys = recursive_tree(next_obj, next_key)
 
     if updated_keys:
         keys[cur_key] = updated_keys
         return keys
 
 
+def process_r(filename):
+    keys = {}
+
+    for _, elem in ET.iterparse(filename):
+        if elem.tag == "tag":
+            k = elem.get("k")
+            keys = recursive_tree(keys, k)
+
+    return keys  
 
 
 
@@ -183,14 +197,10 @@ def process_key_audit(filename, attrib):
 
 
 if __name__ == '__main__':
-    #v_validity_scores = process_map(osm_file, "v")
-    #pprint.pprint(v_validity_scores)
-    # results = count_keys_tree(osm_file)
-    # pprint.pprint(results)
-    #results = recursive_count_keys(osm_file)
-    
-    results = recursive_tree(keys, tag)
-    pprint.pprint(results)
+    data = process_r(osm_file)
+    f_out = open("audit.json", "w")
+    json.dump(data, f_out)
+    f_out.close()
     
 
 
