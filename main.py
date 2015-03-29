@@ -60,6 +60,22 @@ class OsmDescribe:
 
         return None
 
+    def describe_elem_attr_vals_tree(self):
+
+        with open('temp_data/build-tree-tag-k.json') as data_file:    
+            data = json.load(data_file)
+
+        data_dict = {}
+
+        for key in data:
+            key_obj = data[key]
+            count, variations = self.parse_tree_key(key_obj)
+
+            data_dict[key] = { "count" : count, "variations" : variations }
+
+        print json.dumps(data_dict, sort_keys=True,
+                          indent=4, separators=(',', ': '))
+
     # Store flat dictionary of attr values
     def build_elem_attr_vals_flat(self, elem_name, attr_name):
         data = self.count_elem_attr_vals(self.osm_file,
@@ -82,8 +98,6 @@ class OsmDescribe:
         with open(f_out, 'w') as f:
             json.dump(data, f)
     
-
-
 
     def count_elem_names(self, filename):
         """ Return dictionary; keys = element names, values = count of element """
@@ -182,13 +196,26 @@ class OsmDescribe:
             keys[cur_key] = updated_keys
             return keys
 
-    #Possible to use static method decorator here
+
+    def parse_tree_key(self, obj, count = 0, variations = 0):
+        
+        for key in obj:
+            # Base Case
+            if key == "root":
+                count +=  obj[key]
+                variations += 1
+                continue
+
+            new_obj = obj[key]
+            count, variations = self.parse_tree_key(new_obj, count, variations)
+
+        return count, variations
+
+
     def split_keys(self, key):
         """ Returns list; splits string on colon """
 
         return key.split(":", 1)
-
-
 
 class OsmAudit:
 
@@ -222,9 +249,6 @@ class OsmCleaner:
 
 
 
-
-
-
 class TypeCheck:
 
     def __init__(self):
@@ -253,7 +277,7 @@ class TypeCheck:
 
 tag = "service"
 
-keys = {
+obj = {
     'address': {
         'root': 1,
         'apartment': {'root': 5},
@@ -261,7 +285,18 @@ keys = {
         },
     'street': {'apartment': {'room': {'root': 1}}}}
 
-
+obj = {
+    "root": 5,
+    "street": {
+        "root": 7,
+        "apt": {
+            "root": 3,
+            "room": { 
+                "root": 8
+            }
+        }
+    }
+}
 
 
 
@@ -272,7 +307,11 @@ osm_file = "somerville-xml.osm"
 
 if __name__ == '__main__':
 
-    osm_describe = OsmDescribe(osm_file)
+    OD = OsmDescribe(osm_file)
+
+    OD.describe_elem_attr_vals_tree()
+
+    #pprint.pprint(OD.parse_tree_key(obj))
 
     # osm_describe.describe_elements()
 
