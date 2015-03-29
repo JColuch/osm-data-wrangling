@@ -21,10 +21,6 @@ class OsmDescribe:
     def __init__(self, filename):
         self.osm_file = filename
 
-        self.name = filename.split(".")[0]
-
-        self.data_file = "audit_data_" + self.name + ".json" #TODO: name based on tag attr
-
         self.TC = TypeCheck()
 
     def describe_elements(self):
@@ -48,6 +44,44 @@ class OsmDescribe:
         print "------------------------------------------------\n"
 
         return None
+
+    def describe_element_attribute_values(self, elem_name, attr_name):
+        print "Working...\n"
+
+        elements_attr_val_data = self.count_elem_attr_vals(self.osm_file,
+                                                           elem_name,
+                                                           attr_name)
+        msg = "describe_element_attribute_values(" + elem_name + ", "
+        msg += attr_name + ") -> Results:"
+        print msg
+        print "------------------------------------------------"
+        pprint.pprint(elements_attr_val_data)
+        print "------------------------------------------------\n"
+
+        return None
+
+    # Store flat dictionary of attr values
+    def build_elem_attr_vals_flat(self, elem_name, attr_name):
+        data = self.count_elem_attr_vals(self.osm_file,
+                                         elem_name,
+                                         attr_name)
+        f_out = "temp_data/"
+        f_out += "build-flat-" + elem_name + "-" + attr_name + ".json"
+
+        with open(f_out, 'w') as f:
+            json.dump(data, f)
+
+    # Store tree dictionary of attr values
+    def build_elem_attr_vals_tree(self, elem_name, attr_name):
+        data = self.count_elem_attr_vals_tree(self.osm_file,
+                                              elem_name,
+                                              attr_name)
+        f_out = "temp_data/"
+        f_out += "build-tree-" + elem_name + "-" + attr_name + ".json"
+        
+        with open(f_out, 'w') as f:
+            json.dump(data, f)
+    
 
 
 
@@ -80,13 +114,13 @@ class OsmDescribe:
         return attributes
 
 
-    def count_tag_attr_vals(self, filename, tag_name, attr_name):
+    def count_elem_attr_vals(self, filename, elem_name, attr_name):
         """ Return dictionary; keys = tag key names, values = count of key """
 
         keys = {}
 
         for _, elem in ET.iterparse(filename):
-            if elem.tag == tag_name:
+            if elem.tag == elem_name:
                 attr = elem.get(attr_name)
                 if attr in keys:
                     keys[attr] += 1
@@ -95,20 +129,8 @@ class OsmDescribe:
 
         return keys
 
-    # DEPRECATED: Generalized via function: build_tag_attr_val_tree()
-    # def count_tag_keys_tree(self, filename):
-    #     """ Return dictionary; keys = tag key names, values = count of key """
 
-    #     keys = {}
-
-    #     for _, elem in ET.iterparse(filename):
-    #         if elem.tag == "tag":
-    #             k = elem.get("k")
-    #             keys = parse_key(keys, k)
-
-    #     return keys
-
-    def build_tag_attr_val_tree(self, filename, tag_name, attr_name):
+    def count_elem_attr_vals_tree(self, filename, tag_name, attr_name):
 
         keys = {}
 
@@ -252,20 +274,22 @@ if __name__ == '__main__':
 
     osm_describe = OsmDescribe(osm_file)
 
-    osm_describe.describe_elements()
+    # osm_describe.describe_elements()
 
-    osm_describe.describe_element_attributes("nd")
+    # osm_describe.describe_element_attributes("nd")
 
-    # #tags = tools.count_elem_names(osm_file)
-    # attrs = tools.count_tag_attr(osm_file, "nd")
-    # pprint.pprint(attrs)
+    # # Print flat dictionary of attr values
+    # osm_describe.describe_element_attribute_values("tag", "k")
+
+    # # Store flat dictionary of attr values
+    #osm_describe.build_elem_attr_vals_flat("tag", "k")
+
+    # # Store tree dictionary of attr values
+    #osm_describe.build_elem_attr_vals_tree("tag", "k")
 
 
 
-    # data = tools.get_tag_attr_val_tree(osm_file, "nd", "ref")
-    
-    # with open("audit_data/audit.json", "w") as f_out:
-    #     json.dump(data, f_out)
+
   
     
 
