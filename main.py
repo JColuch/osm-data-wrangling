@@ -27,6 +27,17 @@ class OsmDescribe:
 
         self.TC = TypeCheck()
 
+    def describe_elements(self):
+        print "Working...\n"
+
+        element_data = self.count_elem_names(self.osm_file)
+        print "Results:\n\n" 
+        pprint.pprint(element_data)
+        print "\n"
+
+        return None
+
+
     def count_elem_names(self, filename):
         """ Return dictionary; keys = element names, values = count of element """
         tags = {}
@@ -84,7 +95,7 @@ class OsmDescribe:
 
     #     return keys
 
-    def get_tag_attr_val_tree(self, filename, tag_name, attr_name):
+    def build_tag_attr_val_tree(self, filename, tag_name, attr_name):
 
         keys = {}
 
@@ -136,7 +147,7 @@ class OsmDescribe:
             keys[cur_key] = updated_keys
             return keys
 
-
+    #Possible to use static method decorator here
     def split_keys(self, key):
         """ Returns list; splits string on colon """
 
@@ -169,17 +180,13 @@ class OsmAudit:
 
 
 
-class Cleaner:
+class OsmCleaner:
 
     def __init__(self):
         pass
 
 
 
-class CleanerTools:
-
-    def __init__(self):
-        pass
 
 
 
@@ -230,11 +237,13 @@ osm_file = "somerville-xml.osm"
 
 if __name__ == '__main__':
 
-    tools = AuditTools()
+    osm_describe = OsmDescribe(osm_file)
+
+    osm_describe.describe_elements()
 
     # #tags = tools.count_elem_names(osm_file)
-    attrs = tools.count_tag_attr(osm_file, "nd")
-    pprint.pprint(attrs)
+    # attrs = tools.count_tag_attr(osm_file, "nd")
+    # pprint.pprint(attrs)
 
 
 
