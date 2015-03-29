@@ -30,33 +30,46 @@ class OsmDescribe:
     def describe_elements(self):
         print "Working...\n"
 
-        element_data = self.count_elem_names(self.osm_file)
-        print "Results:\n\n" 
-        pprint.pprint(element_data)
-        print "\n"
+        elements_data = self.count_elem_names(self.osm_file)
+        print "describe_elements() -> Results:" 
+        print "------------------------------------------------"
+        pprint.pprint(elements_data)
+        print "------------------------------------------------\n"
+
+        return None
+
+    def describe_element_attributes(self, elem_name):
+        print "Working...\n"
+
+        element_attr_data = self.count_elem_attr(self.osm_file, elem_name)
+        print "describe_element_attributes(" + elem_name + ") -> Results:"
+        print "------------------------------------------------"
+        pprint.pprint(element_attr_data)
+        print "------------------------------------------------\n"
 
         return None
 
 
+
     def count_elem_names(self, filename):
         """ Return dictionary; keys = element names, values = count of element """
-        tags = {}
+        elements = {}
 
         for _, elem in ET.iterparse(filename):
-            if elem.tag in tags:
-                tags[elem.tag] += 1
+            if elem.tag in elements:
+                elements[elem.tag] += 1
             else:
-                tags[elem.tag] = 1
+                elements[elem.tag] = 1
 
-        return tags
+        return elements
 
 
-    def count_tag_attr(self, filename, tag_name):
+    def count_elem_attr(self, filename, elem_name):
         """  """
         attributes = {}
 
         for _, elem in ET.iterparse(filename):
-            if elem.tag == tag_name:
+            if elem.tag == elem_name:
 
                 for item in elem.attrib:
                     if item in attributes:
@@ -240,6 +253,8 @@ if __name__ == '__main__':
     osm_describe = OsmDescribe(osm_file)
 
     osm_describe.describe_elements()
+
+    osm_describe.describe_element_attributes("nd")
 
     # #tags = tools.count_elem_names(osm_file)
     # attrs = tools.count_tag_attr(osm_file, "nd")
