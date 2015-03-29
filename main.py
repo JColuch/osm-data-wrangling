@@ -61,7 +61,6 @@ class OsmDescribe:
         return None
 
     def describe_elem_attr_vals_tree(self):
-
         with open('temp_data/build-tree-tag-k.json') as data_file:    
             data = json.load(data_file)
 
@@ -73,11 +72,16 @@ class OsmDescribe:
 
             data_dict[key] = { "count" : count, "variations" : variations }
 
-        print json.dumps(data_dict, sort_keys=True,
+
+        with open('report_data/tag-count-vari.json', 'w') as f:
+            json.dump(data_dict, f, sort_keys=True,
                           indent=4, separators=(',', ': '))
+
+        return data_dict
 
     # Store flat dictionary of attr values
     def build_elem_attr_vals_flat(self, elem_name, attr_name):
+        print "Working..."
         data = self.count_elem_attr_vals(self.osm_file,
                                          elem_name,
                                          attr_name)
@@ -85,10 +89,15 @@ class OsmDescribe:
         f_out += "build-flat-" + elem_name + "-" + attr_name + ".json"
 
         with open(f_out, 'w') as f:
-            json.dump(data, f)
+            json.dump(data, f, sort_keys=True,
+                               indent=4, separators=(',', ': '))
+        print "Finished!"
+
+        return data
 
     # Store tree dictionary of attr values
     def build_elem_attr_vals_tree(self, elem_name, attr_name):
+        print "Working..."
         data = self.count_elem_attr_vals_tree(self.osm_file,
                                               elem_name,
                                               attr_name)
@@ -96,8 +105,11 @@ class OsmDescribe:
         f_out += "build-tree-" + elem_name + "-" + attr_name + ".json"
         
         with open(f_out, 'w') as f:
-            json.dump(data, f)
-    
+            json.dump(data, f, sort_keys=True,
+                               indent=4, separators=(',', ': '))
+        print "Finished!"
+
+        return data
 
     def count_elem_names(self, filename):
         """ Return dictionary; keys = element names, values = count of element """
@@ -110,7 +122,6 @@ class OsmDescribe:
                 elements[elem.tag] = 1
 
         return elements
-
 
     def count_elem_attr(self, filename, elem_name):
         """  """
@@ -127,7 +138,6 @@ class OsmDescribe:
 
         return attributes
 
-
     def count_elem_attr_vals(self, filename, elem_name, attr_name):
         """ Return dictionary; keys = tag key names, values = count of key """
 
@@ -143,7 +153,6 @@ class OsmDescribe:
 
         return keys
 
-
     def count_elem_attr_vals_tree(self, filename, tag_name, attr_name):
 
         keys = {}
@@ -154,7 +163,6 @@ class OsmDescribe:
                 keys = self.parse_key(keys, attr)
 
         return keys
-
 
     def parse_key(self, keys, tag):
         """" Return keys object with parsed key """
@@ -196,7 +204,6 @@ class OsmDescribe:
             keys[cur_key] = updated_keys
             return keys
 
-
     def parse_tree_key(self, obj, count = 0, variations = 0):
         
         for key in obj:
@@ -211,11 +218,11 @@ class OsmDescribe:
 
         return count, variations
 
-
     def split_keys(self, key):
         """ Returns list; splits string on colon """
 
         return key.split(":", 1)
+
 
 class OsmAudit:
 
@@ -313,18 +320,18 @@ if __name__ == '__main__':
 
     #pprint.pprint(OD.parse_tree_key(obj))
 
-    # osm_describe.describe_elements()
+    # OD.describe_elements()
 
-    # osm_describe.describe_element_attributes("nd")
+    # OD.describe_element_attributes("nd")
 
     # # Print flat dictionary of attr values
-    # osm_describe.describe_element_attribute_values("tag", "k")
+    # OD.describe_element_attribute_values("tag", "k")
 
     # # Store flat dictionary of attr values
-    #osm_describe.build_elem_attr_vals_flat("tag", "k")
+    #OD.build_elem_attr_vals_flat("tag", "k")
 
-    # # Store tree dictionary of attr values
-    #osm_describe.build_elem_attr_vals_tree("tag", "k")
+    # Store tree dictionary of attr values
+    #OD.build_elem_attr_vals_tree("tag", "k")
 
 
 
