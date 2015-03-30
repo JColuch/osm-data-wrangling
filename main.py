@@ -79,6 +79,21 @@ class OsmDescribe:
 
         return data_dict
 
+    def report_top_attr_vals(self):
+        with open('report_data/tag-count-vari.json', 'r') as f:
+            data = json.load(f)
+
+        results = []
+
+        for key in sorted(data.iteritems(), key=lambda (k,v): v['count']):
+            results.append(key)
+
+        top_ten = results[-10:]
+        top_ten = top_ten[::-1]
+        with open('report_data/report-count-vari.json', 'w') as f:
+            json.dump(top_ten, f, sort_keys=True,
+                          indent=4, separators=(',', ': '))
+  
     # Store flat dictionary of attr values
     def build_elem_attr_vals_flat(self, elem_name, attr_name):
         print "Working..."
@@ -316,7 +331,7 @@ if __name__ == '__main__':
 
     OD = OsmDescribe(osm_file)
 
-    OD.describe_elem_attr_vals_tree()
+    #OD.describe_elem_attr_vals_tree()
 
     #pprint.pprint(OD.parse_tree_key(obj))
 
@@ -333,9 +348,7 @@ if __name__ == '__main__':
     # Store tree dictionary of attr values
     #OD.build_elem_attr_vals_tree("tag", "k")
 
-
-
-
+    OD.report_top_attr_vals()
   
     
 
