@@ -50,24 +50,10 @@ class OsmDescribe:
 
         return None
 
-    def fancy_print(self, fn_name, data, arg_names=[]):
-        header = fn_name + "("
-
-        for item in arg_names:
-            header += item + ", "
-
-        header += ") -> Results:"
-
-        print header
-        print "------------------------------------------------"
-        pprint.pprint(data)
-        print "------------------------------------------------\n"
-
-        return None
-
     def describe_elem_attr_vals_tree(self):
-        with open('temp_data/build-tree-tag-k.json') as data_file:    
-            data = json.load(data_file)
+        """ """
+
+        data = self.get_data_from_json_file('temp_data/build-tree-tag-k.json')
 
         data_dict = {}
 
@@ -77,16 +63,16 @@ class OsmDescribe:
 
             data_dict[key] = { "count" : count, "variations" : variations }
 
+        fname_out = 'report_data/tag-count-vari.json'
 
-        with open('report_data/tag-count-vari.json', 'w') as f:
-            json.dump(data_dict, f, sort_keys=True,
-                          indent=4, separators=(',', ': '))
+        self.write_data_to_json_file(fname_out, data_dict)
 
         return data_dict
 
     def describe_top_attr_vals(self):
-        with open('report_data/tag-count-vari.json', 'r') as f:
-            data = json.load(f)
+        fname_in = "report_data/tag-count-vari.json"
+
+        self.get_data_from_json_file(fname_in)
 
         results = []
 
@@ -95,39 +81,40 @@ class OsmDescribe:
 
         top_ten = results[-10:]
         top_ten = top_ten[::-1]
-        with open('report_data/report-count-vari.json', 'w') as f:
-            json.dump(top_ten, f, sort_keys=True,
-                          indent=4, separators=(',', ': '))
+
+        fname_out = 'report_data/report-count-vari.json'
+
+        self.write_data_to_json_file(fname_out, top_ten)
+
+        return None
   
-    # Store flat dictionary of attr values
     def build_elem_attr_vals_flat(self, elem_name, attr_name):
+        """  """
+
         print "Working..."
+
         data = self.count_elem_attr_vals(self.osm_file,
                                          elem_name,
                                          attr_name)
-        f_out = "temp_data/"
-        f_out += "build-flat-" + elem_name + "-" + attr_name + ".json"
+        fname_out = "temp_data/"
+        fname_out += "build-flat-" + elem_name + "-" + attr_name + ".json"
 
-        with open(f_out, 'w') as f:
-            json.dump(data, f, sort_keys=True,
-                               indent=4, separators=(',', ': '))
-        print "Finished!"
+        self.write_data_to_json_file(fname_out, data)
 
         return data
 
-    # Store tree dictionary of attr values
     def build_elem_attr_vals_tree(self, elem_name, attr_name):
+        """  """
         print "Working..."
+
         data = self.count_elem_attr_vals_tree(self.osm_file,
                                               elem_name,
                                               attr_name)
-        f_out = "temp_data/"
-        f_out += "build-tree-" + elem_name + "-" + attr_name + ".json"
+
+        fname_out = "temp_data/"
+        fname_out += "build-tree-" + elem_name + "-" + attr_name + ".json"
         
-        with open(f_out, 'w') as f:
-            json.dump(data, f, sort_keys=True,
-                               indent=4, separators=(',', ': '))
-        print "Finished!"
+        self.write_data_to_json_file(fname_out, data)
 
         return data
 
@@ -215,7 +202,6 @@ class OsmDescribe:
             keys[cur_key] = updated_keys
             return keys
 
-
     def parse_tree_key(self, obj, count = 0, variations = 0):
         
         for key in obj:
@@ -234,6 +220,34 @@ class OsmDescribe:
         """ Returns list; splits string on colon """
 
         return key.split(":", 1)
+
+    def fancy_print(self, fn_name, data, arg_names=[]):
+        header = fn_name + "("
+
+        for item in arg_names:
+            header += item + ", "
+
+        header += ") -> Results:"
+
+        print header
+        print "------------------------------------------------"
+        pprint.pprint(data)
+        print "------------------------------------------------\n"
+
+        return None
+
+    def get_data_from_json_file(self, filename):
+        with open(filename) as data_file:    
+            data = json.load(data_file)
+        
+        return data
+
+    def write_data_to_json_file(self, filename, data):
+        with open(filename, 'w') as f:
+            json.dump(data, f, sort_keys=True,
+                          indent=4, separators=(',', ': '))
+
+        return None
 
 
 class OsmAudit:
@@ -333,7 +347,7 @@ if __name__ == '__main__':
 
     #OD.describe_elements()
 
-    OD.describe_element_attributes("nd")
+    #OD.describe_element_attributes("nd")
 
     # # Print flat dictionary of attr values
     # OD.describe_element_attribute_values("tag", "k")
@@ -346,6 +360,7 @@ if __name__ == '__main__':
 
     #OD.describe_top_attr_vals()
   
+    OD.describe_elem_attr_vals_tree()
     
 
 
