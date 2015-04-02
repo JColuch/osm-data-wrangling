@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"OSM Data Wrangling"
+
+__author__ = "Joel Colucci (JoelColucci@Gmail.com)"
+__copyright__ = "Copyright (C) 2011 Mariano Reingart"
+__license__ = "GPL 3.0"
+__version__ = ""
+
 import xml.etree.cElementTree as ET
 from collections import defaultdict
 import re
@@ -8,106 +15,9 @@ import pprint
 import json
 
 
-
-# Regex
-lower = re.compile(r'^([a-z]|_)*$')
-lower_colon = re.compile(r'^([a-z]|_)*:([a-z]|_)*$')
-problemchars = re.compile(r'[=\+/&<>;\'"\?%#$@\,\. \t\r\n]')
-
-
-
-class OsmDescribe:
-
-    def __init__(self, filename):
-        self.osm_file = filename
-        self.TC = TypeCheck()
-
-    def describe_elements(self):
-        """  """
-        
-        print "Working...\n"
-
-        data = self.count_elem_names(self.osm_file)
-
-        self.fancy_print("describe_elements", data)
-
-        return None
-
-    def describe_element_attributes(self, elem_name):
-        """  """
-
-        print "Working...\n"
-
-        data = self.count_elem_attr(self.osm_file, elem_name)
-
-        self.fancy_print("describe_element_attributes", data, [elem_name])
-
-        return None
-
-    def describe_element_attribute_values(self, elem_name, attr_name):
-        """  """
-
-        print "Working...\n"
-
-        data = self.count_elem_attr_vals(self.osm_file, elem_name, attr_name)
-
-        self.fancy_print("describe_element_attribute_values", data,
-                         [elem_name, attr_name])
-
-        return None
-
-    def describe_elem_attr_vals_tree(self):
-        """  """
-
-        data = self.get_data_from_json_file('temp_data/build-tree-tag-k.json')
-
-        data_dict = {}
-
-        for key in data:
-            key_obj = data[key]
-            count, variations = self.recursive_key_count(key_obj)
-
-            data_dict[key] = { "count" : count, "variations" : variations }
-
-        fname_out = 'report_data/tag-count-vari.json'
-
-        self.write_data_to_json_file(fname_out, data_dict)
-
-        return data_dict
-
-    def describe_top_attr_vals(self):
-        fname_in = "report_data/tag-count-vari.json"
-
-        self.get_data_from_json_file(fname_in)
-
-        results = []
-
-        for key in sorted(data.iteritems(), key=lambda (k,v): v['count']):
-            results.append(key)
-
-        top_ten = results[-10:]
-        top_ten = top_ten[::-1]
-
-        fname_out = 'report_data/report-count-vari.json'
-
-        self.write_data_to_json_file(fname_out, top_ten)
-
-        return None
-  
-    def build_elem_attr_vals(self, elem_name, attr_name, recursive=False):
-        """  """
-
-        print "Working..."
-
-        data = self.count_elem_attr_vals(self.osm_file, elem_name,
-                                         attr_name, recursive)
-        fname_out = "temp_data/"
-        fname_out += "build-flat-" + elem_name + "-" + attr_name + ".json"
-
-        self.write_data_to_json_file(fname_out, data)
-
-        return data
-
+class OsmUtilities:
+    """
+    """
 
     def count_elem_names(self, filename):
         """ Return dictionary; keys = element names, values = count of element """
@@ -153,6 +63,20 @@ class OsmDescribe:
                 keys = self.add_key(keys, attr)
 
         return keys
+
+    def build_elem_attr_vals(self, elem_name, attr_name, recursive=False):
+        """  """
+
+        print "Working..."
+
+        data = self.count_elem_attr_vals(self.osm_file, elem_name,
+                                         attr_name, recursive)
+        fname_out = "temp_data/"
+        fname_out += "build-flat-" + elem_name + "-" + attr_name + ".json"
+
+        self.write_data_to_json_file(fname_out, data)
+
+        return data
 
     def add_key(self, keys, attr):
         """  """
@@ -250,11 +174,92 @@ class OsmDescribe:
         return None
 
 
+class OsmDescribe(OsmUtilities):
+    """
+    """
+
+    def __init__(self, filename):
+        self.osm_file = filename
+
+    def describe_elements(self):
+        """  """
+
+        print "Working...\n"
+
+        data = self.count_elem_names(self.osm_file)
+
+        self.fancy_print("describe_elements", data)
+
+        return None
+
+    def describe_element_attributes(self, elem_name):
+        """  """
+
+        print "Working...\n"
+
+        data = self.count_elem_attr(self.osm_file, elem_name)
+
+        self.fancy_print("describe_element_attributes", data, [elem_name])
+
+        return None
+
+    def describe_element_attribute_values(self, elem_name, attr_name):
+        """  """
+
+        print "Working...\n"
+
+        data = self.count_elem_attr_vals(self.osm_file, elem_name, attr_name)
+
+        self.fancy_print("describe_element_attribute_values", data,
+                         [elem_name, attr_name])
+
+        return None
+
+    def describe_elem_attr_vals_tree(self):
+        """  """
+
+        data = self.get_data_from_json_file('temp_data/build-tree-tag-k.json')
+
+        data_dict = {}
+
+        for key in data:
+            key_obj = data[key]
+            count, variations = self.recursive_key_count(key_obj)
+
+            data_dict[key] = { "count" : count, "variations" : variations }
+
+        fname_out = 'report_data/tag-count-vari.json'
+
+        self.write_data_to_json_file(fname_out, data_dict)
+
+        return data_dict
+
+    def describe_top_attr_vals(self):
+        fname_in = "report_data/tag-count-vari.json"
+
+        self.get_data_from_json_file(fname_in)
+
+        results = []
+
+        for key in sorted(data.iteritems(), key=lambda (k,v): v['count']):
+            results.append(key)
+
+        top_ten = results[-10:]
+        top_ten = top_ten[::-1]
+
+        fname_out = 'report_data/report-count-vari.json'
+
+        self.write_data_to_json_file(fname_out, top_ten)
+
+        return None
+  
+
 class OsmAudit:
 
     def __init__(self):
-        pass
-
+        self.lower = re.compile(r'^([a-z]|_)*$')
+        self.lower_colon = re.compile(r'^([a-z]|_)*:([a-z]|_)*$')
+        self.problemchars = re.compile(r'[=\+/&<>;\'"\?%#$@\,\. \t\r\n]')
 
     def audit_key(self, attrib, element, keys):
         """ Checks key against regex for validity"""
@@ -274,8 +279,19 @@ class OsmAudit:
         return keys
 
 
+class OsmTransform:
 
-class OsmCleaner:
+    def __init__(self):
+        pass
+
+
+class OsmLoad:
+
+    def __init__(self):
+        pass
+
+
+class OsmClean:
 
     def __init__(self):
         pass
@@ -332,13 +348,9 @@ obj = {
 
 
 
-
-#1.75 million rows of data!
-osm_file = "somerville-xml.osm"
-
-
-if __name__ == '__main__':
-
+def main():
+    #1.75 million rows of data!
+    osm_file = "somerville-xml.osm"
     OD = OsmDescribe(osm_file)
 
     #OD.describe_elem_attr_vals_tree()
@@ -355,12 +367,16 @@ if __name__ == '__main__':
     # # Store flat dictionary of attr values
     OD.build_elem_attr_vals("tag", "k", True)
 
-    # Store tree dictionary of attr values
-    #OD.build_elem_attr_vals_tree("tag", "k")
-
     #OD.describe_top_attr_vals()
   
     #OD.describe_elem_attr_vals_tree()
+
+
+
+if __name__ == '__main__':
+    main()
+
+
     
 
 
