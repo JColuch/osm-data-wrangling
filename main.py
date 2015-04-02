@@ -23,6 +23,8 @@ class OsmDescribe:
         self.TC = TypeCheck()
 
     def describe_elements(self):
+        """  """
+        
         print "Working...\n"
 
         data = self.count_elem_names(self.osm_file)
@@ -32,6 +34,8 @@ class OsmDescribe:
         return None
 
     def describe_element_attributes(self, elem_name):
+        """  """
+
         print "Working...\n"
 
         data = self.count_elem_attr(self.osm_file, elem_name)
@@ -41,6 +45,8 @@ class OsmDescribe:
         return None
 
     def describe_element_attribute_values(self, elem_name, attr_name):
+        """  """
+
         print "Working...\n"
 
         data = self.count_elem_attr_vals(self.osm_file, elem_name, attr_name)
@@ -51,7 +57,7 @@ class OsmDescribe:
         return None
 
     def describe_elem_attr_vals_tree(self):
-        """ """
+        """  """
 
         data = self.get_data_from_json_file('temp_data/build-tree-tag-k.json')
 
@@ -59,7 +65,7 @@ class OsmDescribe:
 
         for key in data:
             key_obj = data[key]
-            count, variations = self.parse_tree_key(key_obj)
+            count, variations = self.recursive_key_count(key_obj)
 
             data_dict[key] = { "count" : count, "variations" : variations }
 
@@ -88,14 +94,13 @@ class OsmDescribe:
 
         return None
   
-    def build_elem_attr_vals_flat(self, elem_name, attr_name):
+    def build_elem_attr_vals(self, elem_name, attr_name, recursive=False):
         """  """
 
         print "Working..."
 
-        data = self.count_elem_attr_vals(self.osm_file,
-                                         elem_name,
-                                         attr_name)
+        data = self.count_elem_attr_vals(self.osm_file, elem_name,
+                                         attr_name, recursive)
         fname_out = "temp_data/"
         fname_out += "build-flat-" + elem_name + "-" + attr_name + ".json"
 
@@ -103,23 +108,10 @@ class OsmDescribe:
 
         return data
 
-    def build_elem_attr_vals_tree(self, elem_name, attr_name):
-        """  """
-        print "Working..."
-
-        data = self.count_elem_attr_vals_tree(self.osm_file,
-                                              elem_name,
-                                              attr_name)
-
-        fname_out = "temp_data/"
-        fname_out += "build-tree-" + elem_name + "-" + attr_name + ".json"
-        
-        self.write_data_to_json_file(fname_out, data)
-
-        return data
 
     def count_elem_names(self, filename):
         """ Return dictionary; keys = element names, values = count of element """
+
         elements = {}
 
         for _, elem in ET.iterparse(filename):
@@ -132,11 +124,11 @@ class OsmDescribe:
 
     def count_elem_attr(self, filename, elem_name):
         """  """
+
         attributes = {}
 
         for _, elem in ET.iterparse(filename):
             if elem.tag == elem_name:
-
                 for item in elem.attrib:
                     if item in attributes:
                         attributes[item] += 1
@@ -145,7 +137,7 @@ class OsmDescribe:
 
         return attributes
 
-    def count_elem_attr_vals(self, filename, elem_name, attr_name):
+    def count_elem_attr_vals(self, filename, elem_name, attr_name, recursive=False):
         """ Return dictionary; keys = tag key names, values = count of key """
 
         keys = {}
@@ -153,25 +145,26 @@ class OsmDescribe:
         for _, elem in ET.iterparse(filename):
             if elem.tag == elem_name:
                 attr = elem.get(attr_name)
-                if attr in keys:
-                    keys[attr] += 1
-                else:
-                    keys[attr] = 1
+
+                if recursive:
+                    keys = self.recursive_add_key(keys, attr)
+                    continue
+
+                keys = self.add_key(keys, attr)
 
         return keys
 
-    def count_elem_attr_vals_tree(self, filename, tag_name, attr_name):
+    def add_key(self, keys, attr):
+        """  """
 
-        keys = {}
-
-        for _, elem in ET.iterparse(filename):
-            if elem.tag == tag_name:
-                attr = elem.get(attr_name)
-                keys = self.refactor_parse_key(keys, attr)
+        if attr in keys:
+            keys[attr] += 1
+        else:
+            keys[attr] = 1
 
         return keys
 
-    def refactor_parse_key(self, keys, tag):
+    def recursive_add_key(self, keys, tag):
         """" Return keys object with parsed key """
  
         # Recursive base case
@@ -196,13 +189,14 @@ class OsmDescribe:
             next_obj = {}
 
         # Recursive call
-        updated_keys = self.refactor_parse_key(next_obj, next_key)
+        updated_keys = self.recursive_add_key(next_obj, next_key)
 
         if updated_keys:
             keys[cur_key] = updated_keys
             return keys
 
-    def parse_tree_key(self, obj, count = 0, variations = 0):
+    def recursive_key_count(self, obj, count = 0, variations = 0):
+        """  """
         
         for key in obj:
             # Base Case
@@ -212,7 +206,7 @@ class OsmDescribe:
                 continue
 
             new_obj = obj[key]
-            count, variations = self.parse_tree_key(new_obj, count, variations)
+            count, variations = self.recursive_key_count(new_obj, count, variations)
 
         return count, variations
 
@@ -222,6 +216,8 @@ class OsmDescribe:
         return key.split(":", 1)
 
     def fancy_print(self, fn_name, data, arg_names=[]):
+        """  """
+
         header = fn_name + "("
 
         for item in arg_names:
@@ -237,12 +233,16 @@ class OsmDescribe:
         return None
 
     def get_data_from_json_file(self, filename):
+        """  """
+
         with open(filename) as data_file:    
             data = json.load(data_file)
         
         return data
 
     def write_data_to_json_file(self, filename, data):
+        """  """
+
         with open(filename, 'w') as f:
             json.dump(data, f, sort_keys=True,
                           indent=4, separators=(',', ': '))
@@ -343,7 +343,7 @@ if __name__ == '__main__':
 
     #OD.describe_elem_attr_vals_tree()
 
-    #pprint.pprint(OD.parse_tree_key(obj))
+    #pprint.pprint(OD.recursive_key_count(obj))
 
     #OD.describe_elements()
 
@@ -353,14 +353,14 @@ if __name__ == '__main__':
     # OD.describe_element_attribute_values("tag", "k")
 
     # # Store flat dictionary of attr values
-    #OD.build_elem_attr_vals_flat("tag", "k")
+    OD.build_elem_attr_vals("tag", "k", True)
 
     # Store tree dictionary of attr values
     #OD.build_elem_attr_vals_tree("tag", "k")
 
     #OD.describe_top_attr_vals()
   
-    OD.describe_elem_attr_vals_tree()
+    #OD.describe_elem_attr_vals_tree()
     
 
 
