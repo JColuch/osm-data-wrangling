@@ -20,42 +20,47 @@ class OsmDescribe:
 
     def __init__(self, filename):
         self.osm_file = filename
-
         self.TC = TypeCheck()
 
     def describe_elements(self):
         print "Working...\n"
 
-        elements_data = self.count_elem_names(self.osm_file)
-        print "describe_elements() -> Results:" 
-        print "------------------------------------------------"
-        pprint.pprint(elements_data)
-        print "------------------------------------------------\n"
+        data = self.count_elem_names(self.osm_file)
+
+        self.fancy_print("describe_elements", data)
 
         return None
 
     def describe_element_attributes(self, elem_name):
         print "Working...\n"
 
-        element_attr_data = self.count_elem_attr(self.osm_file, elem_name)
-        print "describe_element_attributes(" + elem_name + ") -> Results:"
-        print "------------------------------------------------"
-        pprint.pprint(element_attr_data)
-        print "------------------------------------------------\n"
+        data = self.count_elem_attr(self.osm_file, elem_name)
+
+        self.fancy_print("describe_element_attributes", data, [elem_name])
 
         return None
 
     def describe_element_attribute_values(self, elem_name, attr_name):
         print "Working...\n"
 
-        elements_attr_val_data = self.count_elem_attr_vals(self.osm_file,
-                                                           elem_name,
-                                                           attr_name)
-        msg = "describe_element_attribute_values(" + elem_name + ", "
-        msg += attr_name + ") -> Results:"
-        print msg
+        data = self.count_elem_attr_vals(self.osm_file, elem_name, attr_name)
+
+        self.fancy_print("describe_element_attribute_values", data,
+                         [elem_name, attr_name])
+
+        return None
+
+    def fancy_print(self, fn_name, data, arg_names=[]):
+        header = fn_name + "("
+
+        for item in arg_names:
+            header += item + ", "
+
+        header += ") -> Results:"
+
+        print header
         print "------------------------------------------------"
-        pprint.pprint(elements_attr_val_data)
+        pprint.pprint(data)
         print "------------------------------------------------\n"
 
         return None
@@ -326,9 +331,9 @@ if __name__ == '__main__':
 
     #pprint.pprint(OD.parse_tree_key(obj))
 
-    # OD.describe_elements()
+    #OD.describe_elements()
 
-    # OD.describe_element_attributes("nd")
+    OD.describe_element_attributes("nd")
 
     # # Print flat dictionary of attr values
     # OD.describe_element_attribute_values("tag", "k")
@@ -337,7 +342,7 @@ if __name__ == '__main__':
     #OD.build_elem_attr_vals_flat("tag", "k")
 
     # Store tree dictionary of attr values
-    OD.build_elem_attr_vals_tree("tag", "k")
+    #OD.build_elem_attr_vals_tree("tag", "k")
 
     #OD.describe_top_attr_vals()
   
