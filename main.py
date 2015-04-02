@@ -79,7 +79,7 @@ class OsmDescribe:
 
         return data_dict
 
-    def report_top_attr_vals(self):
+    def describe_top_attr_vals(self):
         with open('report_data/tag-count-vari.json', 'r') as f:
             data = json.load(f)
 
@@ -175,49 +175,41 @@ class OsmDescribe:
         for _, elem in ET.iterparse(filename):
             if elem.tag == tag_name:
                 attr = elem.get(attr_name)
-                keys = self.parse_key(keys, attr)
+                keys = self.refactor_parse_key(keys, attr)
 
         return keys
 
-    def parse_key(self, keys, tag):
+    def refactor_parse_key(self, keys, tag):
         """" Return keys object with parsed key """
-        # Handle pre-existing key
-        if tag in keys:
-            if "root" not in keys[tag]:
-                keys[tag] = { "root" : 1 }
-
-            keys[tag]["root"] += 1
-
-            return keys
-
-        # Handle base case
+ 
+        # Recursive base case
         if len(self.split_keys(tag)) == 1:
-            keys[tag] = { "root" : 1 }
+            if tag in keys:
+                if "root" in keys[tag]:
+                    keys[tag]["root"] += 1
+            else:
+                keys[tag] = { "root" : 1 }
+            
             return keys
-        
-        cur_key = self.split_keys(tag)[0] #address
-        next_key = self.split_keys(tag)[1] #street
 
-        # Comment the code
+        cur_key = self.split_keys(tag)[0]
+        next_key = self.split_keys(tag)[1]
+
+        # Get key value
         cur_obj = keys.get(cur_key)
 
-        # If cur_key exists and has a value of a number
-        if self.TC.is_int(cur_obj):
-            val = keys[cur_key]
-            next_obj = { cur_key : val }
-        # If cur_key exists and has a value of a object
-        elif cur_obj:
+        if cur_obj:
             next_obj = cur_obj
-        # If cur_key does not exist
         else:
             next_obj = {}
 
         # Recursive call
-        updated_keys = self.parse_key(next_obj, next_key)
+        updated_keys = self.refactor_parse_key(next_obj, next_key)
 
         if updated_keys:
             keys[cur_key] = updated_keys
             return keys
+
 
     def parse_tree_key(self, obj, count = 0, variations = 0):
         
@@ -268,7 +260,6 @@ class OsmCleaner:
 
     def __init__(self):
         pass
-
 
 
 class TypeCheck:
@@ -346,9 +337,9 @@ if __name__ == '__main__':
     #OD.build_elem_attr_vals_flat("tag", "k")
 
     # Store tree dictionary of attr values
-    #OD.build_elem_attr_vals_tree("tag", "k")
+    OD.build_elem_attr_vals_tree("tag", "k")
 
-    OD.report_top_attr_vals()
+    #OD.describe_top_attr_vals()
   
     
 
