@@ -13,7 +13,7 @@ from collections import defaultdict
 import re
 import pprint
 import json
-
+import time
 
 class OsmUtilities:
     """
@@ -63,20 +63,6 @@ class OsmUtilities:
                 keys = self.add_key(keys, attr)
 
         return keys
-
-    def build_elem_attr_vals(self, elem_name, attr_name, recursive=False):
-        """  """
-
-        print "Working..."
-
-        data = self.count_elem_attr_vals(self.osm_file, elem_name,
-                                         attr_name, recursive)
-        fname_out = "temp_data/"
-        fname_out += "build-flat-" + elem_name + "-" + attr_name + ".json"
-
-        self.write_data_to_json_file(fname_out, data)
-
-        return data
 
     def add_key(self, keys, attr):
         """  """
@@ -174,51 +160,74 @@ class OsmUtilities:
         return None
 
 
-class OsmDescribe(OsmUtilities):
+class OsmReport(OsmUtilities):
     """
     """
 
     def __init__(self, filename):
         self.osm_file = filename
 
-    def describe_elements(self):
+    def execute(self):
         """  """
 
-        print "Working...\n"
+        # Report tag names and frequency
+        self.report_elements()
+
+        # Report tag attributes
+        self.report_element_attributes("tag")
+
+        # Flat JSON
+        self.report_element_attribute_values("tag", "k")
+
+        # Tree JSON
+        self.report_element_attribute_values("tag", "k", True)
+
+        # Report tag k summary
+        self.report_tag_k_summary()
+
+        # Report top ten k vals by frequency
+        self.report_top_k_attr_vals()
+
+    def report_elements(self):
+        """  """
 
         data = self.count_elem_names(self.osm_file)
 
-        self.fancy_print("describe_elements", data)
+        fname_out = "reports/element-types.json"
+
+        self.write_data_to_json_file(fname_out, data)
 
         return None
 
-    def describe_element_attributes(self, elem_name):
+    def report_element_attributes(self, elem_name):
         """  """
-
-        print "Working...\n"
 
         data = self.count_elem_attr(self.osm_file, elem_name)
 
-        self.fancy_print("describe_element_attributes", data, [elem_name])
+        fname_out = "reports/" + elem_name + "-attributes.json"
+        
+        self.write_data_to_json_file(fname_out, data)
 
         return None
 
-    def describe_element_attribute_values(self, elem_name, attr_name):
-        """  """
+    def report_element_attribute_values(self, elem_name, attr_name, recursive=False):
+        """ Return flat JSON """
 
-        print "Working...\n"
+        data = self.count_elem_attr_vals(self.osm_file, elem_name, attr_name, recursive)
 
-        data = self.count_elem_attr_vals(self.osm_file, elem_name, attr_name)
-
-        self.fancy_print("describe_element_attribute_values", data,
-                         [elem_name, attr_name])
+        if recursive:
+            fname_out = "reports/eav-recursive-" + elem_name + "-" + attr_name + ".json"
+        else:
+            fname_out = "reports/eav-" + elem_name + "-" + attr_name + ".json"
+        
+        self.write_data_to_json_file(fname_out, data)
 
         return None
 
-    def describe_elem_attr_vals_tree(self):
+    def report_tag_k_summary(self):
         """  """
 
-        data = self.get_data_from_json_file('temp_data/build-tree-tag-k.json')
+        data = self.count_elem_attr_vals(self.osm_file, "tag", "k", True)
 
         data_dict = {}
 
@@ -228,16 +237,18 @@ class OsmDescribe(OsmUtilities):
 
             data_dict[key] = { "count" : count, "variations" : variations }
 
-        fname_out = 'report_data/tag-count-vari.json'
+        fname_out = "reports/tag-k-summary.json"
 
         self.write_data_to_json_file(fname_out, data_dict)
 
         return data_dict
 
-    def describe_top_attr_vals(self):
-        fname_in = "report_data/tag-count-vari.json"
+    def report_top_k_attr_vals(self):
+        """  """
 
-        self.get_data_from_json_file(fname_in)
+        fname_in = "reports/tag-k-summary.json"
+
+        data = self.get_data_from_json_file(fname_in)
 
         results = []
 
@@ -247,7 +258,7 @@ class OsmDescribe(OsmUtilities):
         top_ten = results[-10:]
         top_ten = top_ten[::-1]
 
-        fname_out = 'report_data/report-count-vari.json'
+        fname_out = 'reports/top-tag-k-values.json'
 
         self.write_data_to_json_file(fname_out, top_ten)
 
@@ -350,26 +361,13 @@ obj = {
 
 def main():
     #1.75 million rows of data!
+    start = time.clock()
     osm_file = "somerville-xml.osm"
-    OD = OsmDescribe(osm_file)
+    osm_report = OsmReport(osm_file)
+    osm_report.execute()
+    end = time.clock()
+    print "Execution time: " + str(end-start)
 
-    #OD.describe_elem_attr_vals_tree()
-
-    #pprint.pprint(OD.recursive_key_count(obj))
-
-    #OD.describe_elements()
-
-    #OD.describe_element_attributes("nd")
-
-    # # Print flat dictionary of attr values
-    # OD.describe_element_attribute_values("tag", "k")
-
-    # # Store flat dictionary of attr values
-    OD.build_elem_attr_vals("tag", "k", True)
-
-    #OD.describe_top_attr_vals()
-  
-    #OD.describe_elem_attr_vals_tree()
 
 
 
