@@ -160,7 +160,7 @@ class Utilities:
         return None
 
 
-class Report(OsmUtilities):
+class Report(Utilities):
     """
     """
 
@@ -239,7 +239,7 @@ class Report(OsmUtilities):
 
             data_dict[key] = { "count" : count, "variations" : variations }
 
-        fname_out = "reports/tag-k-summary.json"
+        fname_out = "reports/eav-summary-tag-k.json"
 
         self.write_data_to_json_file(fname_out, data_dict)
 
@@ -249,7 +249,7 @@ class Report(OsmUtilities):
         """  """
 
         #TODO: Handle case where tag-k-summary not yet in existence
-        fname_in = "reports/tag-k-summary.json"
+        fname_in = "reports/eav-summary-tag-k.json"
 
         data = self.get_data_from_json_file(fname_in)
 
@@ -261,35 +261,52 @@ class Report(OsmUtilities):
         top_ten = results[-10:]
         top_ten = top_ten[::-1]
 
-        fname_out = 'reports/top-tag-k-values.json'
+        fname_out = 'reports/eav-top-tag-k.json'
 
         self.write_data_to_json_file(fname_out, top_ten)
 
         return None
   
 
-class Audit:
+class Audit(Utilities):
 
-    def __init__(self):
-        self.lower = re.compile(r'^([a-z]|_)*$')
-        self.lower_colon = re.compile(r'^([a-z]|_)*:([a-z]|_)*$')
-        self.problemchars = re.compile(r'[=\+/&<>;\'"\?%#$@\,\. \t\r\n]')
+    def __init__(self, filename):
+        self.osm_file = filename
+        self.regex_lower = re.compile(r'^([a-z]|_)*$')
+        self.regex_lower_colon = re.compile(r'^([a-z]|_)*:([a-z]|_)*$')
+        self.regex_problemchars = re.compile(r'[=\+/&<>;\'"\?%#$@\,\. \t\r\n]')
 
     def execute(self):
-        pass
+        self.audit_tag_attr("tag", "k")
 
-    def audit_key(self, attrib, element, keys):
+        return None
+
+    def audit_tag_attr(self, target_elm, attr_name):
+        keys = {"lower": 0, "lower_colon": 0, "problemchars": 0, "other": 0}
+
+        for _, element in ET.iterparse(self.osm_file):
+            keys = self.audit_key(keys, element, target_elm, attr_name)
+
+        fname_out = "audits/audit-" + target_elm + "-" + attr_name + ".json"
+        self.write_data_to_json_file(fname_out, keys)
+
+        return keys
+
+    def audit_key(self, keys, element, target_elm, attr):
         """ Checks key against regex for validity"""
 
-        if element.tag == "tag":
-            val = element.get(attrib)
+        if element.tag == target_elm:
+            val = element.get(attr)
 
-            if re.search(problemchars, val):
+            if re.search(self.regex_problemchars, val):
                 keys["problemchars"] += 1
-            elif re.search(lower, val):
+
+            elif re.search(self.regex_lower, val):
                 keys["lower"] += 1
-            elif re.search(lower_colon, val):
+
+            elif re.search(self.regex_lower_colon, val):
                 keys["lower_colon"] += 1
+
             else:
                 keys["other"] += 1
 
@@ -343,8 +360,12 @@ def main():
     start = time.clock()
 
     osm_file = "somerville-xml.osm"
-    osm_report = OsmReport(osm_file)
-    osm_report.execute()
+
+    #reporter = Report(osm_file)
+    #reporter.execute()
+
+    auditor = Audit(osm_file)
+    auditor.execute()
 
     end = time.clock()
     print "Execution time: " + str(end-start)
