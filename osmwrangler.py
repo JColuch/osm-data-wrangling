@@ -278,21 +278,23 @@ class Audit(Utilities):
 
     def execute(self):
         self.audit_tag_attr("tag", "k")
-
+        
+        self.audit_tag_attr("tag", "v")
+        
         return None
 
     def audit_tag_attr(self, target_elm, attr_name):
         keys = {"lower": 0, "lower_colon": 0, "problemchars": 0, "other": 0}
 
         for _, element in ET.iterparse(self.osm_file):
-            keys = self.audit_key(keys, element, target_elm, attr_name)
+            keys = self.audit_elem_attr_pattern(keys, element, target_elm, attr_name)
 
         fname_out = "audits/audit-" + target_elm + "-" + attr_name + ".json"
         self.write_data_to_json_file(fname_out, keys)
 
         return keys
 
-    def audit_key(self, keys, element, target_elm, attr):
+    def audit_elem_attr_pattern(self, keys, element, target_elm, attr):
         """ Checks key against regex for validity"""
 
         if element.tag == target_elm:
@@ -312,12 +314,48 @@ class Audit(Utilities):
 
         return keys
 
+#TODO: Generalize to handle auditing any k-v pair
+class AuditStreet(Audit):
+    """
+    """
 
-class Transform:
+    def __init__(self, filename):
+        self.osm_file = filename
+        self.expected = ["Street", "Avenue", "Boulevard", "Drive", "Court",
+                         "Place", "Square", "Lane", "Road", 
+                         "Trail", "Parkway", "Commons"]
+        self.street_type_re = re.compile(r'\b\S+\.?$', re.IGNORECASE)
+
+    #TODO: Remember temp variables are bad! 
+    
+    def audit_street_type(self, street_types, street_name):
+        m = self.street_type_re.search(street_name)
+        if m:
+            street_type = m.group()
+            if street_type not in self.expected:
+                street_types[street_type].add(street_name)
+
+    def is_street_name(self, elem):
+        return (elem.attrib['k'] == "addr:street")
+
+    def audit(self):
+        osm_file = open(self.osm_file, "r")
+        street_types = defaultdict(set)
+        for event, elem in ET.iterparse(self.osm_file, events=("start",)):
+
+            if elem.tag == "node" or elem.tag == "way":
+                for tag in elem.iter("tag"):
+                    if self.is_street_name(tag):
+                        self.audit_street_type(street_types, tag.attrib['v'])
+
+        pprint.pprint(dict(street_types))
+
+
+class Transform():
 
     def __init__(self):
         pass
-
+        
 
 class Load:
 
@@ -364,8 +402,11 @@ def main():
     #reporter = Report(osm_file)
     #reporter.execute()
 
-    auditor = Audit(osm_file)
-    auditor.execute()
+    # auditor = Audit(osm_file)
+    # auditor.execute()
+
+    aud = AuditStreet(osm_file)
+    aud.audit()
 
     end = time.clock()
     print "Execution time: " + str(end-start)
