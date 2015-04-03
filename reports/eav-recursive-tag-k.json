@@ -248,7 +248,33 @@
         "root": 17
     },
     "contact": {
-        "root": 2
+        "email": {
+            "root": 14
+        },
+        "facebook": {
+            "root": 1
+        },
+        "fax": {
+            "root": 4
+        },
+        "google_plus": {
+            "root": 1
+        },
+        "linkedin": {
+            "root": 1
+        },
+        "phone": {
+            "root": 16
+        },
+        "twitter": {
+            "root": 1
+        },
+        "webcam": {
+            "root": 7
+        },
+        "website": {
+            "root": 17
+        }
     },
     "cost": {
         "coffee": {
@@ -419,7 +445,9 @@
         "root": 36
     },
     "flag": {
-        "root": 2
+        "type": {
+            "root": 1
+        }
     },
     "floating": {
         "root": 26
@@ -2001,25 +2029,24 @@
                 "root": 14
             },
             "diy": {
-                "root": 6
+                "root": 7
             },
             "pump": {
-                "root": 3
+                "root": 4
             },
             "rental": {
-                "root": 2
+                "root": 3
             },
             "repair": {
-                "root": 5
+                "root": 6
             },
             "retail": {
-                "root": 7
+                "root": 8
             },
             "second_hand": {
                 "root": 3
             }
-        },
-        "root": 1335
+        }
     },
     "sex": {
         "root": 2
@@ -2175,9 +2202,8 @@
     "turn": {
         "lanes": {
             "backward": {
-                "root": 1
-            },
-            "root": 5
+                "root": 2
+            }
         }
     },
     "type": {

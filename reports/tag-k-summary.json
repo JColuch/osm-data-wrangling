@@ -212,8 +212,8 @@
         "variations": 1
     },
     "contact": {
-        "count": 2,
-        "variations": 1
+        "count": 62,
+        "variations": 9
     },
     "cost": {
         "count": 4,
@@ -400,7 +400,7 @@
         "variations": 1
     },
     "flag": {
-        "count": 2,
+        "count": 1,
         "variations": 1
     },
     "floating": {
@@ -916,8 +916,8 @@
         "variations": 1
     },
     "service": {
-        "count": 1375,
-        "variations": 8
+        "count": 45,
+        "variations": 7
     },
     "sex": {
         "count": 2,
@@ -1064,8 +1064,8 @@
         "variations": 1
     },
     "turn": {
-        "count": 6,
-        "variations": 2
+        "count": 2,
+        "variations": 1
     },
     "type": {
         "count": 656,
