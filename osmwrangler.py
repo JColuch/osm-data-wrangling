@@ -4,7 +4,7 @@
 "OSM Data Wrangling"
 
 __author__ = "Joel Colucci (JoelColucci@Gmail.com)"
-__copyright__ = "Copyright (C) 2011 Mariano Reingart"
+__copyright__ = "Copyright (C) 2015 Joel Colucci"
 __license__ = "GPL 3.0"
 __version__ = ""
 
