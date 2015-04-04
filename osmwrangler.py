@@ -357,10 +357,142 @@ class AuditStreet(Audit):
         return data_dict
 
 
-class Transform():
+class Transform:
 
     def __init__(self):
-        pass
+        lower = re.compile(r'^([a-z]|_)*$')
+        lower_colon = re.compile(r'^([a-z]|_)*:([a-z]|_)*$')
+        problemchars = re.compile(r'[=\+/&<>;\'"\?%#$@\,\. \t\r\n]')
+
+        CREATED = [ "version", "changeset", "timestamp", "user", "uid"]
+        POSITION = ["lat", "lon"]
+
+    def to_json(self, data):
+        return json.dumps(data, sort_keys=True,
+                         indent=4, separators=(',', ': '))
+
+    def shape_element(self, element):
+        node = {}
+
+        if element.tag == "node" or element.tag == "way" :
+            # YOUR CODE HERE
+            # Add tag type to node
+            node["type"] = element.tag
+
+            # Add desired element attributes to node
+            node = process_elem_attributes(node, element)
+
+            # Add desired sub-element attributes to node
+            node = process_elem_sub_attributes(node, element)
+            
+            # Reverse order of list so grader is happy
+            if "pos" in node:
+                node["pos"] = node["pos"][::-1]
+
+            return node
+        else:
+            return None
+
+    def process_elem_attributes(self, node, element):
+        attributes = element.attrib
+        #TODO: Add all attributes of node or way tag
+        for attribute in attributes:
+            value = element.attrib[attribute]
+
+            #TODO: Place CREATED attributes in nested dict
+            if attribute in CREATED:
+                if "created" not in node:
+                    node["created"] = {}
+
+                node["created"][attribute] = value
+                continue
+            
+            #TODO: Place position attributes in nested dict
+            if attribute in POSITION:
+                if "pos" not in node:
+                    node["pos"] = []
+
+                node["pos"].append(float(value))
+                continue
+
+            #TODO: Place remaining attributes in dict
+            node[attribute] = value
+
+        return node
+
+    def process_elem_sub_attributes(self, node, element):
+        sub_elements = element.getiterator()
+
+        for sub_elm in sub_elements:
+            if sub_elm.tag == "tag":
+                node = process_tag_elem(node, sub_elm)
+
+            if sub_elm.tag == "nd":
+                node = process_nd_tag(node, sub_elm)
+        
+        return node
+
+    def process_tag_elem(self, node, sub_elem):
+        k_val = sub_elem.attrib["k"]
+        v_val = sub_elem.attrib["v"]
+
+        #TODO: Check for problematic k values
+        if contains_bad_char(k_val):
+            # Ignore
+            return node
+
+        #TODO: Check if compound street
+        if is_compound_street_address(k_val):
+            # Ignore (example: <tag k="addr:street:prefix" v="North"/>)
+            return node
+        
+        #TODO: Check if starts with "addr:"
+        if k_val.startswith("addr:"):
+            if "address" not in node:
+                node["address"] = {}
+
+            values = k_val.split(":")
+            key = values[1]
+            node["address"][key] = v_val
+        else:
+            node[k_val] = v_val
+
+        return node
+
+    def is_compound_street_address(self, string):
+        values = string.split(":")
+        if len(values) > 2 and values[1] == "street":
+            return True
+
+        return False
+
+    def contains_bad_char(self, string):
+        return re.search(problemchars, string)
+
+    def process_nd_tag(self, node, sub_elm):
+        ref = sub_elm.attrib["ref"]
+
+        if "node_refs" in node:
+            node["node_refs"].append(ref)
+        else:
+            node["node_refs"] = [ref]
+
+        return node
+
+    def process_map(self, file_in, pretty = False):
+        # You do not need to change this file
+        file_out = "{0}.json".format(file_in)
+        data = []
+        with codecs.open(file_out, "w") as fo:
+            for _, element in ET.iterparse(file_in):
+                el = shape_element(element)
+                if el:
+                    data.append(el)
+                    if pretty:
+                        fo.write(json.dumps(el, indent=2)+"\n")
+                    else:
+                        fo.write(json.dumps(el) + "\n")
+        return data
 
 
 class Load:
