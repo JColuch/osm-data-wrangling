@@ -4,3 +4,4 @@ project.txt
 *.pyc
 sample.py
 orig-transform.py
+/uploads

@@ -14,6 +14,7 @@ import re
 import pprint
 import json
 import time
+import codecs
 
 class Utilities:
     """
@@ -359,13 +360,30 @@ class AuditStreet(Audit):
 
 class Transform:
 
-    def __init__(self):
-        lower = re.compile(r'^([a-z]|_)*$')
-        lower_colon = re.compile(r'^([a-z]|_)*:([a-z]|_)*$')
-        problemchars = re.compile(r'[=\+/&<>;\'"\?%#$@\,\. \t\r\n]')
+    def __init__(self, filename):
+        self.osm_file = filename
+        self.problemchars = re.compile(r'[=\+/&<>;\'"\?%#$@\,\. \t\r\n]')
 
-        CREATED = [ "version", "changeset", "timestamp", "user", "uid"]
-        POSITION = ["lat", "lon"]
+        self.CREATED = [ "version", "changeset", "timestamp", "user", "uid"]
+        self.POSITION = ["lat", "lon"]
+
+    def execute(self):
+        data = self.process_map(self.osm_file, False)
+
+    def process_map(self, file_in, pretty = False):
+        # You do not need to change this file
+        file_out = 'uploads/transformed-data.json'
+        data = []
+        with codecs.open(file_out, "w") as fo:
+            for _, element in ET.iterparse(file_in):
+                el = self.shape_element(element)
+                if el:
+                    data.append(el)
+                    if pretty:
+                        fo.write(json.dumps(el, indent=2)+"\n")
+                    else:
+                        fo.write(json.dumps(el) + "\n")
+        return data
 
     def to_json(self, data):
         return json.dumps(data, sort_keys=True,
@@ -380,10 +398,10 @@ class Transform:
             node["type"] = element.tag
 
             # Add desired element attributes to node
-            node = process_elem_attributes(node, element)
+            node = self.process_elem_attributes(node, element)
 
             # Add desired sub-element attributes to node
-            node = process_elem_sub_attributes(node, element)
+            node = self.process_elem_sub_attributes(node, element)
             
             # Reverse order of list so grader is happy
             if "pos" in node:
@@ -400,7 +418,7 @@ class Transform:
             value = element.attrib[attribute]
 
             #TODO: Place CREATED attributes in nested dict
-            if attribute in CREATED:
+            if attribute in self.CREATED:
                 if "created" not in node:
                     node["created"] = {}
 
@@ -408,7 +426,7 @@ class Transform:
                 continue
             
             #TODO: Place position attributes in nested dict
-            if attribute in POSITION:
+            if attribute in self.POSITION:
                 if "pos" not in node:
                     node["pos"] = []
 
@@ -425,10 +443,10 @@ class Transform:
 
         for sub_elm in sub_elements:
             if sub_elm.tag == "tag":
-                node = process_tag_elem(node, sub_elm)
+                node = self.process_tag_elem(node, sub_elm)
 
             if sub_elm.tag == "nd":
-                node = process_nd_tag(node, sub_elm)
+                node = self.process_nd_tag(node, sub_elm)
         
         return node
 
@@ -437,12 +455,12 @@ class Transform:
         v_val = sub_elem.attrib["v"]
 
         #TODO: Check for problematic k values
-        if contains_bad_char(k_val):
+        if self.contains_bad_char(k_val):
             # Ignore
             return node
 
         #TODO: Check if compound street
-        if is_compound_street_address(k_val):
+        if self.is_compound_street_address(k_val):
             # Ignore (example: <tag k="addr:street:prefix" v="North"/>)
             return node
         
@@ -467,7 +485,7 @@ class Transform:
         return False
 
     def contains_bad_char(self, string):
-        return re.search(problemchars, string)
+        return re.search(self.problemchars, string)
 
     def process_nd_tag(self, node, sub_elm):
         ref = sub_elm.attrib["ref"]
@@ -479,20 +497,7 @@ class Transform:
 
         return node
 
-    def process_map(self, file_in, pretty = False):
-        # You do not need to change this file
-        file_out = "{0}.json".format(file_in)
-        data = []
-        with codecs.open(file_out, "w") as fo:
-            for _, element in ET.iterparse(file_in):
-                el = shape_element(element)
-                if el:
-                    data.append(el)
-                    if pretty:
-                        fo.write(json.dumps(el, indent=2)+"\n")
-                    else:
-                        fo.write(json.dumps(el) + "\n")
-        return data
+
 
 
 class Load:
@@ -543,8 +548,10 @@ def main():
     # auditor = Audit(osm_file)
     # auditor.execute()
 
-    aud = AuditStreet(osm_file)
-    aud.audit()
+    # aud = AuditStreet(osm_file)
+    # aud.audit()
+    tf = Transform(osm_file)
+    tf.execute()
 
     end = time.clock()
     print "Execution time: " + str(end-start)
