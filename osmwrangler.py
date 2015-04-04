@@ -314,19 +314,18 @@ class Audit(Utilities):
 
         return keys
 
-#TODO: Generalize to handle auditing any k-v pair
+
 class AuditStreet(Audit):
     """
     """
 
     def __init__(self, filename):
         self.osm_file = filename
-        self.expected = ["Street", "Avenue", "Boulevard", "Drive", "Court",
-                         "Place", "Square", "Lane", "Road", 
-                         "Trail", "Parkway", "Commons"]
-        self.street_type_re = re.compile(r'\b\S+\.?$', re.IGNORECASE)
+        self.expected = ["Street", "Avenue", "Boulevard", "Drive",
+                         "Court", "Place", "Square", "Lane",
+                         "Road", "Trail", "Parkway", "Commons"]
 
-    #TODO: Remember temp variables are bad! 
+        self.street_type_re = re.compile(r'\b\S+\.?$', re.IGNORECASE)
     
     def audit_street_type(self, street_types, street_name):
         m = self.street_type_re.search(street_name)
@@ -348,14 +347,21 @@ class AuditStreet(Audit):
                     if self.is_street_name(tag):
                         self.audit_street_type(street_types, tag.attrib['v'])
 
-        pprint.pprint(dict(street_types))
+        c_data = self._convert(street_types)
+        self.write_data_to_json_file("audits/street-types.json", c_data)
+
+    def _convert(self, data_dict):
+        for key in data_dict:
+            data_dict[key] = list(data_dict[key])
+
+        return data_dict
 
 
 class Transform():
 
     def __init__(self):
         pass
-        
+
 
 class Load:
 
