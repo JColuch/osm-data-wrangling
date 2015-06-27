@@ -8,8 +8,8 @@ OSM XML data.
 import xml.etree.cElementTree as ET
 
 
-def count_tags(filename):
-    """Return dict containing name and count of top level tags"""
+def get_top_level_tag_summary(filename):
+    """Return dict containing name and count of top level tags."""
     tags = {}
 
     for _, elem in ET.iterparse(filename):
