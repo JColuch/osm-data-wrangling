@@ -5,3 +5,4 @@ project.txt
 sample.py
 orig-transform.py
 /uploads
+pylint.txt
