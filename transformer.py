@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-"""TODO: Module docstring"""
+"""This module contains functions to transform OSM XML data
+into JSON documents ready to be uploaded to mongodb.
+"""
 
-import xml.etree.ElementTree as ET
-import pprint
-import re
 import codecs
 import json
+import re
+import xml.etree.ElementTree as ET
 
 
 LOWER = re.compile(r'^([a-z]|_)*$')
@@ -21,15 +22,15 @@ def process_map(file_in, pretty=False):
     """Transform XML data into JSON document schema for mongodb upload"""
     file_out = "{0}.json".format(file_in)
     data = []
-    with codecs.open(file_out, "w") as fo:
+    with codecs.open(file_out, "w") as file_out:
         for _, element in ET.iterparse(file_in):
-            el = shape_element(element)
-            if el:
-                data.append(el)
+            elem = shape_element(element)
+            if elem:
+                data.append(elem)
                 if pretty:
-                    fo.write(json.dumps(el, indent=2)+"\n")
+                    file_out.write(json.dumps(elem, indent=2)+"\n")
                 else:
-                    fo.write(json.dumps(el) + "\n")
+                    file_out.write(json.dumps(elem) + "\n")
     return data
 
 
@@ -142,4 +143,5 @@ def contains_bad_char(string):
 
 
 if __name__ == "__main__":
-    test()
+    OSM_FILE = 'somerville-xml.osm'
+    process_map(OSM_FILE, True)
