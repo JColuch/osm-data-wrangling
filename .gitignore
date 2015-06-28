@@ -1,9 +1,4 @@
-somerville-xml.osm
-somerville-xml.osm.json
+data
 plan.txt
-project.txt
 *.pyc
-sample.py
-orig-transform.py
-/uploads
 pylint.txt

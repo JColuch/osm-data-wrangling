@@ -124,5 +124,5 @@ def _split_keys(key):
 
 
 if __name__ == '__main__':
-    OSM_FILE = 'somerville-xml.osm'
+    OSM_FILE = 'data/somerville-xml.osm'
     print get_k_value_breakdown(OSM_FILE)

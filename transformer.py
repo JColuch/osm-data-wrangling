@@ -20,7 +20,7 @@ POSITION = ["lat", "lon"]
 
 def process_map(file_in, pretty=False):
     """Transform XML data into JSON document schema for mongodb upload"""
-    file_out = "{0}.json".format(file_in)
+    file_out = "data/{0}.json".format(file_in)
     data = []
     with codecs.open(file_out, "w") as file_out:
         for _, element in ET.iterparse(file_in):
@@ -143,5 +143,5 @@ def contains_bad_char(string):
 
 
 if __name__ == "__main__":
-    OSM_FILE = 'somerville-xml.osm'
+    OSM_FILE = 'data/somerville-xml.osm'
     process_map(OSM_FILE, True)

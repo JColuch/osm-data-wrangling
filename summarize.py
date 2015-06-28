@@ -34,5 +34,5 @@ def get_number_of_contributors(filename):
 
 
 if __name__ == '__main__':
-    OSM_FILE = 'somerville-xml.osm'
+    OSM_FILE = 'data/somerville-xml.osm'
     print get_top_level_tag_summary(OSM_FILE)
