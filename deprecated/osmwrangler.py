@@ -123,7 +123,6 @@ class Utilities:
 
     def split_keys(self, key):
         """ Returns list; splits string on colon """
-
         return key.split(":", 1)
 
     def fancy_print(self, fn_name, data, arg_names=[]):
@@ -505,6 +504,16 @@ class Load:
     def __init__(self):
         pass
 
+    def execute(self):
+        # For local use
+        from pymongo import MongoClient
+        client = MongoClient("mongodb://localhost:27017")
+
+        db = client.osm
+
+        db.osm.insert(data)
+
+        mongoimport -db dbname -c collectionname --file input-file.json
 
 class Clean:
 
