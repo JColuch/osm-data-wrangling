@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""This module contains functions to transform OSM XML data
+"""Module contains functions to transform OSM XML data
 into JSON documents ready to be uploaded to mongodb.
 """
 
