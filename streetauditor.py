@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Module contains functions that normalize street names.
+"""Module contains functions to audit and normalize street names.
 """
 
 

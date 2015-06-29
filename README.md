@@ -12,3 +12,6 @@ Module contains functions that analyze OSM XML elements of type tag.
 
 ####transformer.py
 Module contains functions to transform OSM XML data into JSON documents ready to be uploaded to mongodb.
+
+####streetauditor.py
+Module contains functions to audit and normalize street data.
