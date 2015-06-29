@@ -20,7 +20,7 @@ POSITION = ["lat", "lon"]
 
 def process_map(file_in, pretty=False):
     """Transform XML data into JSON document schema for mongodb upload"""
-    file_out = "data/{0}.json".format(file_in)
+    file_out = "{0}.json".format(file_in)
     data = []
     with codecs.open(file_out, "w") as file_out:
         for _, element in ET.iterparse(file_in):
