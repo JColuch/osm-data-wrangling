@@ -11,12 +11,34 @@ import xml.etree.cElementTree as ET
 
 EXPECTED = ["Street", "Avenue", "Boulevard", "Drive",
             "Court", "Place", "Square", "Lane",
-            "Road", "Trail", "Parkway", "Commons"]
+            "Road", "Trail", "Parkway", "Commons",
+            "Elm", "West", "Hampshire", "Cambridge",
+            "Broadway", "Circle", "East", "Highway",
+            "Center", "Park", "Fellsway", "Holland",
+            "Terrace", "Row", "Way"]
 
 STREET_RE = re.compile(r'\b\S+\.?$', re.IGNORECASE)
 
+MAPPING = {
+    "St": "Street",
+    "ST": "Street",
+    "St.": "Street",
+    "st": "Street",
+    "St,": "Street",
+    "ave": "Avenue",
+    "Ave.": "Avenue",
+    "Ave": "Avenue",
+    "Pl": "Place",
+    "Hwy": "Highway",
+    "Sq": "Square",
+    "Pkwy": "Parkway",
+    "Ct": "Court",
+    "Rd": "Road",
+    "LEVEL": "Level"
+}
 
-def normalize_street_names(filename):
+
+def audit(filename):
     """Identify and transform non-expected street names."""
     street_types = defaultdict(set)
 
@@ -26,9 +48,7 @@ def normalize_street_names(filename):
                 if is_street_name(tag):
                     audit_street_type(street_types, tag.attrib['v'])
 
-    c_data = _convert(street_types)
-
-    return c_data, street_types
+    return street_types
 
 
 def audit_street_type(street_types, street_name):
@@ -45,13 +65,22 @@ def is_street_name(elem):
     return elem.attrib['k'] == "addr:street"
 
 
-def _convert(data_dict):
-    """Map list values to dictionary."""
-    for key in data_dict:
-        data_dict[key] = list(data_dict[key])
+def normalize_name(street_type):
+    """Transform streetname to desired format."""
+    normalized_street = street_type
 
-    return data_dict
+    match = re.search(STREET_RE, street_type)
+    if match:
+        match_str = match.group(0)
+        #If street name is not valid, normalize it.
+        if match_str not in EXPECTED:
+            #Get mapping, if no mapping available default to the same.
+            new_name = MAPPING.get(match_str, match_str)
+            normalized_street = re.sub(match_str, new_name, street_type)
+
+    return normalized_street
 
 
 if __name__ == '__main__':
-    pass
+    OSM_FILE = 'data/somerville-xml.osm'
+    print dict(normalize_street_names(OSM_FILE))

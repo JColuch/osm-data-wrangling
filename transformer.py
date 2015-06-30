@@ -7,6 +7,7 @@ into JSON documents ready to be uploaded to mongodb.
 import codecs
 import json
 import re
+import streetauditor
 import xml.etree.ElementTree as ET
 
 
@@ -14,6 +15,7 @@ LOWER = re.compile(r'^([a-z]|_)*$')
 LOWER_COLON = re.compile(r'^([a-z]|_)*:([a-z]|_)*$')
 PROBLEM_CHARS = re.compile(r'[=\+/&<>;\'"\?%#$@\,\. \t\r\n]')
 
+DESIRED = ["id", "type", "visible", "amenity", "cuisine", "name", "phone"]
 CREATED = ["version", "changeset", "timestamp", "user", "uid"]
 POSITION = ["lat", "lon"]
 
@@ -40,10 +42,10 @@ def shape_element(element):
 
     if element.tag == "node" or element.tag == "way":
         node["type"] = element.tag
-        # Add desired element attributes to node
+        # Add desired element attributes to node.
         node = transform_element_attributes(node, element)
 
-        # Add desired sub-element attributes to node
+        # Add desired sub-element attributes to node.
         node = transform_sub_elem_attributes(node, element)
 
         return node
@@ -58,22 +60,22 @@ def transform_element_attributes(node, element):
 
     for attribute in attributes:
         value = element.attrib[attribute]
-        #Capture special attrs in CREATED collection and add to nested dict.
+        # Capture special attrs in CREATED collection and add to nested dict.
         if attribute in CREATED:
             if "created" not in node:
                 node["created"] = {}
             node["created"][attribute] = value
-        #Capture lat, lon  attributes and add to nested dict "pos".
+        # Capture lat, lon  attributes and add to nested dict "pos".
         elif attribute in POSITION:
             if "pos" not in node:
                 node["pos"] = []
-            #Ensure proper order of lat, lon in list.
+            # Ensure proper order of lat, lon in list.
             if attribute == "lat":
                 node["pos"].insert(0, float(value))
             else:
                 node["pos"].append(float(value))
-        else:
-            #Place attribute in dict.
+        elif attribute in DESIRED:
+            # Place attribute in dict.
             node[attribute] = value
 
     return node
@@ -98,19 +100,24 @@ def transform_tag_elem(node, sub_elem):
     k_val = sub_elem.attrib["k"]
     v_val = sub_elem.attrib["v"]
 
-    #Catch and ignore problematic k values.
+    # Catch and ignore problematic k values.
     if contains_bad_char(k_val) or is_compound_street_address(k_val):
         return node
 
-    #Catch address related k values.
+    # Catch address related k values.
     if k_val.startswith("addr:"):
         if "address" not in node:
             node["address"] = {}
 
         values = k_val.split(":")
         key = values[1]
+
+        # If applicable, normalize street name.
+        if key == 'street':
+            v_val = streetauditor.normalize_name(v_val)
+
         node["address"][key] = v_val
-    else:
+    elif k_val in DESIRED:
         node[k_val] = v_val
 
     return node
