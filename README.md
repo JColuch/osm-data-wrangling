@@ -1,7 +1,7 @@
 OpenStreetMap Data Wrangling
 ============================
 ##Project Details
-This respository contains modules to review OpenStreetMap(OSM) XML data and/or transform it into JSON documents ready for upload into MongoDB.
+This repository contains modules to review OpenStreetMap(OSM) XML data and/or transform it into JSON documents ready for upload into MongoDB.
 
 ###Module Descriptions
 ####summarize.py
